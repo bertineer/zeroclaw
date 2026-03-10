@@ -575,7 +575,7 @@ impl OpenAiCodexProvider {
             store: false,
             stream: true,
             text: ResponsesTextOptions {
-                verbosity: "concise".to_string(),
+                verbosity: "low".to_string(),
             },
             reasoning: ResponsesReasoningOptions {
                 effort: resolve_reasoning_effort(normalized_model),
