@@ -579,7 +579,7 @@ impl OpenAiCodexProvider {
             },
             reasoning: ResponsesReasoningOptions {
                 effort: resolve_reasoning_effort(normalized_model),
-                summary: "none".to_string(),
+                summary: "auto".to_string(),
             },
             include: vec!["reasoning.encrypted_content".to_string()],
             tool_choice: "auto".to_string(),
