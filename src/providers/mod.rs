@@ -43,6 +43,30 @@ use serde::Deserialize;
 use std::path::PathBuf;
 
 const MAX_API_ERROR_CHARS: usize = 200;
+
+/// Remove `<think>...</think>` blocks from model output.
+/// Some reasoning models embed their chain-of-thought inline in the `content`
+/// field rather than a separate `reasoning_content` field. The resulting
+/// `<think>` tags must be stripped before returning to the user.
+pub(crate) fn strip_think_tags(s: &str) -> String {
+    let mut result = String::with_capacity(s.len());
+    let mut rest = s;
+    loop {
+        if let Some(start) = rest.find("<think>") {
+            result.push_str(&rest[..start]);
+            if let Some(end) = rest[start..].find("</think>") {
+                rest = &rest[start + end + "</think>".len()..];
+            } else {
+                // Unclosed tag: drop the rest to avoid leaking partial reasoning.
+                break;
+            }
+        } else {
+            result.push_str(rest);
+            break;
+        }
+    }
+    result.trim().to_string()
+}
 const MINIMAX_INTL_BASE_URL: &str = "https://api.minimax.io/v1";
 const MINIMAX_CN_BASE_URL: &str = "https://api.minimaxi.com/v1";
 const MINIMAX_OAUTH_GLOBAL_TOKEN_ENDPOINT: &str = "https://api.minimax.io/oauth/token";
