@@ -502,28 +502,9 @@ struct Choice {
     finish_reason: Option<String>,
 }
 
-/// Remove `<think>...</think>` blocks from model output.
-/// Some reasoning models (e.g. MiniMax) embed their chain-of-thought inline
-/// in the `content` field rather than a separate `reasoning_content` field.
-/// The resulting `<think>` tags must be stripped before returning to the user.
+/// Delegate to the shared `strip_think_tags` in the parent module.
 fn strip_think_tags(s: &str) -> String {
-    let mut result = String::with_capacity(s.len());
-    let mut rest = s;
-    loop {
-        if let Some(start) = rest.find("<think>") {
-            result.push_str(&rest[..start]);
-            if let Some(end) = rest[start..].find("</think>") {
-                rest = &rest[start + end + "</think>".len()..];
-            } else {
-                // Unclosed tag: drop the rest to avoid leaking partial reasoning.
-                break;
-            }
-        } else {
-            result.push_str(rest);
-            break;
-        }
-    }
-    result.trim().to_string()
+    super::strip_think_tags(s)
 }
 
 #[derive(Debug, Deserialize, Serialize)]

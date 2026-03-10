@@ -497,6 +497,13 @@ fn nonempty_preserve(text: Option<&str>) -> Option<String> {
 }
 
 fn extract_responses_text(response: &ResponsesResponse) -> Option<String> {
+    let raw = extract_responses_text_raw(response)?;
+    // Safety net: strip any residual reasoning tags that may leak through.
+    let cleaned = super::strip_think_tags(&raw);
+    if cleaned.is_empty() { None } else { Some(cleaned) }
+}
+
+fn extract_responses_text_raw(response: &ResponsesResponse) -> Option<String> {
     if let Some(text) = first_nonempty(response.output_text.as_deref()) {
         return Some(text);
     }
@@ -1012,11 +1019,11 @@ impl OpenAiCodexProvider {
             store: false,
             stream: true,
             text: ResponsesTextOptions {
-                verbosity: "medium".to_string(),
+                verbosity: "concise".to_string(),
             },
             reasoning: ResponsesReasoningOptions {
                 effort: resolve_reasoning_effort(normalized_model, self.reasoning_level.as_deref()),
-                summary: "auto".to_string(),
+                summary: "none".to_string(),
             },
             include: vec!["reasoning.encrypted_content".to_string()],
             tool_choice: "auto".to_string(),
