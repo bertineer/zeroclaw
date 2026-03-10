@@ -319,15 +319,15 @@ pub fn all_tools_with_runtime(
     // Microsoft 365 Graph API integration
     if root_config.microsoft365.enabled {
         let ms_cfg = &root_config.microsoft365;
-        let tenant_id = ms_cfg
-            .tenant_id
-            .as_deref()
+        let tenant_id = std::env::var("M365_TENANT_ID")
+            .ok()
+            .or_else(|| ms_cfg.tenant_id.clone())
             .unwrap_or_default()
             .trim()
             .to_string();
-        let client_id = ms_cfg
-            .client_id
-            .as_deref()
+        let client_id = std::env::var("M365_CLIENT_ID")
+            .ok()
+            .or_else(|| ms_cfg.client_id.clone())
             .unwrap_or_default()
             .trim()
             .to_string();
@@ -335,15 +335,16 @@ pub fn all_tools_with_runtime(
             let resolved = microsoft365::types::Microsoft365ResolvedConfig {
                 tenant_id,
                 client_id,
-                client_secret: ms_cfg.client_secret.clone(),
+                client_secret: std::env::var("M365_CLIENT_SECRET")
+                    .ok()
+                    .or_else(|| ms_cfg.client_secret.clone()),
                 auth_flow: ms_cfg.auth_flow.clone(),
                 scopes: ms_cfg.scopes.clone(),
                 token_cache_encrypted: ms_cfg.token_cache_encrypted,
-                user_id: ms_cfg
-                    .user_id
-                    .as_deref()
-                    .unwrap_or("me")
-                    .to_string(),
+                user_id: std::env::var("M365_USER_ID")
+                    .ok()
+                    .or_else(|| ms_cfg.user_id.clone())
+                    .unwrap_or_else(|| "me".to_string()),
             };
             tool_arcs.push(Arc::new(Microsoft365Tool::new(
                 resolved,
