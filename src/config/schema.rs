@@ -4449,26 +4449,36 @@ impl Config {
 
         // Microsoft 365
         if self.microsoft365.enabled {
-            let tenant = self
-                .microsoft365
-                .tenant_id
-                .as_deref()
-                .map(str::trim)
-                .filter(|s| !s.is_empty());
+            let tenant = std::env::var("M365_TENANT_ID")
+                .ok()
+                .filter(|s| !s.trim().is_empty())
+                .or_else(|| {
+                    self.microsoft365
+                        .tenant_id
+                        .as_deref()
+                        .map(str::trim)
+                        .filter(|s| !s.is_empty())
+                        .map(String::from)
+                });
             if tenant.is_none() {
                 anyhow::bail!(
-                    "microsoft365.tenant_id must not be empty when microsoft365 is enabled"
+                    "microsoft365.tenant_id must not be empty when microsoft365 is enabled (set in config or M365_TENANT_ID env var)"
                 );
             }
-            let client = self
-                .microsoft365
-                .client_id
-                .as_deref()
-                .map(str::trim)
-                .filter(|s| !s.is_empty());
+            let client = std::env::var("M365_CLIENT_ID")
+                .ok()
+                .filter(|s| !s.trim().is_empty())
+                .or_else(|| {
+                    self.microsoft365
+                        .client_id
+                        .as_deref()
+                        .map(str::trim)
+                        .filter(|s| !s.is_empty())
+                        .map(String::from)
+                });
             if client.is_none() {
                 anyhow::bail!(
-                    "microsoft365.client_id must not be empty when microsoft365 is enabled"
+                    "microsoft365.client_id must not be empty when microsoft365 is enabled (set in config or M365_CLIENT_ID env var)"
                 );
             }
             let flow = self.microsoft365.auth_flow.trim();
